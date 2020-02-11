@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+        /* Basic comiplation options */
+        "target": "es2019", /* ES Target Version */
+        "module": "esnext", /* Module code generation version */
+        "lib": [
+            "es2019"
+        ],
+
+        /* Module resolution options */
+
+        "moduleResolution": "node", /* Module resolution strategy */
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,  /* Generates corresponding '.map' file. */
+        "esModuleInterop": true, /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
+        "resolveJsonModule": true, /* Allow importing .json files with type checking. */
+
+        /* Checking options */
+        "strict": true, /* Enable all strict type-checking options. */
+        "noImplicitAny": true, /* Raise error on expressions and declarations with an implied 'any' type. */
+        "noImplicitThis": false, /* Raise error on 'this' expressions with an implied 'any' type. False because of mongoose models. */
+
+        /* Project options */
+        "outDir": "dist",
+        "baseUrl": "./",
+        "paths": {
+            "@entomophage/*": [
+                "packages/*/src/"
+            ]
+        },
+        "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
+    },
+    "include": [
+        "packages"
+    ],
+    "exclude": [
+        "packages/*/dist"
+    ]
+}

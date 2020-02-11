@@ -1,0 +1,16 @@
+{
+    "name": "@entomophage/common",
+    "version": "0.1.0",
+    "description": "Common library used by multiple services.",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json",
+        "watch-ts": "tsc -wp tsconfig.build.json",
+        "lint": "tsc --noEmit -p tsconfig.build.json && eslint \"**/*.{js,ts}\" --quiet --fix"
+    },
+    "author": "Uros 'l2cup' Nikolic",
+    "license": "MIT",
+    "private": true
+}
