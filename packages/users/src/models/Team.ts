@@ -23,9 +23,9 @@ const getProjectCount: getter<number> = function getProjectCount(): number {
 };
 
 const teamSchema = new mongoose.Schema({
-  name: String,
+  name: { type: String, unique: true, required: true },
+  leaderId: { type: Number, unique: true, required: true },
   website: String,
-  leaderId: { type: Number, unique: true },
   memberIds: [String],
   projectIds: [String],
 });

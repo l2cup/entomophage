@@ -36,7 +36,8 @@ module.exports = {
         ts: 'never',
         tsx: 'never'
       }
-    ]
+    ],
+    'max-len': 1
   },
   /* Resolving clashing airbnb settings for import */
   settings: {
