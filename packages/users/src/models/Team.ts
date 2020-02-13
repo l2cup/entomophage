@@ -4,7 +4,7 @@ export type TeamDocument = mongoose.Document & {
   name: string;
   website: string;
 
-  leaderId: number;
+  leaderId: string;
   memberIds: string[];
   projectIds: string[];
 
@@ -24,7 +24,7 @@ const getProjectCount: getter<number> = function getProjectCount(): number {
 
 const teamSchema = new mongoose.Schema({
   name: { type: String, unique: true, required: true },
-  leaderId: { type: Number, unique: true, required: true },
+  leaderId: { type: String, unique: true, required: true },
   website: String,
   memberIds: [String],
   projectIds: [String],

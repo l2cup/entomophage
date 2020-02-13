@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Team, TeamDocument } from '../models/Team';
 import { UserDocument } from '../models/User';
 import * as userService from './user';
@@ -9,7 +10,8 @@ import * as userService from './user';
  */
 export const getTeam = async (name: string): Promise<TeamDocument | null> => {
   try {
-    const team = await Team.findOne({ name }); if (team == null) return null;
+    const team = await Team.findOne({ name });
+    if (team == null) return null;
     return team;
   } catch (err) {
     return err;
@@ -24,15 +26,14 @@ export const getTeam = async (name: string): Promise<TeamDocument | null> => {
  * @param {string} name
  * @param {string} leaderUsername
  * @param {string[]} usernames
- * @returns {Promise<TeamDocument | null>}
- */
+*  @returns {Promise<TeamDocument | null>} */
 export const createTeam = async (name: string, leaderUsername: string, usernames: string[]): Promise<TeamDocument | null> => {
   try {
-    if (leaderUsername == null && usernames.length === 0) return null;
-    const existingTeam = Team.findOne({ name });
-    if (existingTeam != null) return null;
+    if (leaderUsername == null) throw new mongoose.Error('Leader not provided.');
+    const existingTeam = await Team.findOne({ name });
+    if (existingTeam != null) throw new mongoose.Error('Team already exists');
     const leader = await userService.getUserByUsername(leaderUsername);
-    if (leader == null) return null;
+    if (leader == null) throw new mongoose.Error('Leader not found.');
     let memberIds: string[] = await Promise.all(usernames.map(async (username: string) => {
       const user = await userService.getUserByUsername(username);
       if (user == null) return '';
@@ -79,9 +80,9 @@ export const deleteTeam = async (name: string): Promise<boolean> => {
 export const removeFromTeam = async (username: string): Promise<TeamDocument | null> => {
   try {
     const user = await userService.getUserByUsername(username);
-    if (user == null) return null;
+    if (user == null) throw new mongoose.Error('User not found.');
     const team = await Team.findById(user.profile?.teamId);
-    if (team == null) return null;
+    if (team == null) throw new mongoose.Error('Team not found.');
     team.memberIds = team.memberIds.filter((id) => id !== team.id);
     await team.save();
     return team;
@@ -107,10 +108,10 @@ export const updateTeam = async (updated: Partial<TeamDocument>, newName?: strin
     } else if (updated.id !== undefined) {
       team = await Team.findById(updated.id);
     } else {
-      return null;
+      throw new mongoose.Error('Name or id not provided.');
     }
     if (team == null) return null;
-    if (newName !== undefined || newName !== '') {
+    if (newName !== undefined && newName !== '') {
       const newNameTeam = await Team.findOne({ name: newName });
       if (newNameTeam !== undefined) team.name = newName as string;
     }

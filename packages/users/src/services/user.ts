@@ -95,7 +95,7 @@ export const updateUser = async (updated: Partial<UserDocument>): Promise<UserDo
     } else if (updated.id !== undefined) {
       user = await User.findById(updated.id);
     } else {
-      return null;
+      throw new Error('No username or id provided.');
     }
     if (user === null) return null;
     if (updated.email !== undefined) user.email = updated.email;

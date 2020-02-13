@@ -24,17 +24,16 @@ export const postRegister = async (req: Request, res: Response, next: NextFuncti
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'Email not provided.' });
       return;
     }
+    if (req.body.password === undefined) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'Password not provided.' });
+      return;
+    }
     let user = await userService.getUserByEmail(req.body.email);
     if (user != null) {
       res.status(HttpStatus.CONFLICT).json({ error: 'User already exists.' });
       return;
-    } if (req.body.password === undefined) {
-      res.status(HttpStatus.BAD_REQUEST).json({ error: 'Password not provided.' });
-      return;
     }
-
     user = await userService.createUser(req.body.username, req.body.email, req.body.password);
-
     if (user == null) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Error creating the user.' });
       return;

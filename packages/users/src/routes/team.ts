@@ -4,7 +4,7 @@ import * as teamService from '../services/team';
 import { TeamDocument } from '../models/Team';
 
 /**
- * @method GET /team/?teamName=""
+ * @method GET /team/?name=""
  * @description getTeam is a get request for the '/team' route used to get a team by it's name.
  *
  * Response is the team fetched from the database or an error with description.
@@ -15,11 +15,11 @@ import { TeamDocument } from '../models/Team';
  */
 export const getTeam = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (req.query.teamName === undefined) {
+    if (req.query.name === undefined) {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'No team name given.' });
       return;
     }
-    const team = await teamService.getTeam(req.query.teamName);
+    const team = await teamService.getTeam(req.query.name);
     if (team == null) {
       res.status(HttpStatus.NOT_FOUND).json({ error: 'Team not found.' });
       return;
@@ -44,7 +44,7 @@ export const getTeam = async (req: Request, res: Response, next: NextFunction): 
  */
 export const postCreateTeam = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (req.body.teamName === undefined) {
+    if (req.body.name === undefined) {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'No team name given.' });
       return;
     }
@@ -52,10 +52,10 @@ export const postCreateTeam = async (req: Request, res: Response, next: NextFunc
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'No leader username given. The team must have a leader.' });
       return;
     }
-    const usernames = req.body.usernames || [];
-    const team = await teamService.createTeam(req.body.teamName, req.body.leader, usernames);
+    const members = req.body.members || [];
+    const team = await teamService.createTeam(req.body.name, req.body.leader, members);
     if (team == null) {
-      res.status(HttpStatus.CONFLICT).json({ error: 'Team already exists.' });
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Could not create team.' });
       return;
     }
     res.status(HttpStatus.OK).json(team);
@@ -78,7 +78,7 @@ export const postCreateTeam = async (req: Request, res: Response, next: NextFunc
  */
 export const putUpdateTeam = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (req.body.teamName === undefined) {
+    if (req.body.name === undefined) {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'No team name given.' });
       return;
     }
@@ -111,11 +111,11 @@ export const putUpdateTeam = async (req: Request, res: Response, next: NextFunct
  */
 export const deleteTeam = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (req.body.teamName === undefined) {
+    if (req.body.name === undefined) {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'Team name not provided.', deleted: false });
       return;
     }
-    const deleted: boolean = await teamService.deleteTeam(req.body.teamName);
+    const deleted: boolean = await teamService.deleteTeam(req.body.name);
     if (!deleted) {
       res.status(HttpStatus.NOT_FOUND).json({ error: 'User not found', deleted: false });
       return;
