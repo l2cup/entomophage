@@ -81,5 +81,5 @@ export type QueueMessage = {
   recipient: MessagingParty;
   action: Action;
   changedDataKey: ChangedDataKey;
-  changedData: Map<string, MessageData>;
+  changedData: Record<string, MessageData>;
 }

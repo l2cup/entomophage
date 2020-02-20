@@ -135,9 +135,10 @@ export const updateTeam = async (updated: Partial<TeamDocument>, newName?: strin
         /* Mq logic is here because if the name isn't changed, no need to go into this branch */
         const channel: Channel | null = mq.getIssuesChannel();
         if (channel == null) throw new Error('Channel error while updating name.');
-        const changedData = new Map<string, MessageData>();
-        changedData.set('old_name', { data: team.name, changedDataType: ChangedDataType.STRING });
-        changedData.set('new_name', { data: newName, changedDataType: ChangedDataType.STRING });
+        const changedData: Record<string, MessageData> = {
+          oldName: { data: team.name, changedDataType: ChangedDataType.STRING },
+          newName: { data: newName, changedDataType: ChangedDataType.STRING },
+        };
         const message: QueueMessage = {
           sender: MessagingParty.SERVICE_USER,
           recipient: MessagingParty.SERVICE_ISSUES,

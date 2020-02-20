@@ -44,17 +44,18 @@ export const createProject = async (name: string, author: string): Promise<Proje
     const project = new Project({ name, author });
     const channel: Channel | null = mq.getIssuesChannel();
     if (channel == null) throw new Error('Problem with creating the project.');
-    const changedData = new Map<string, MessageData>();
-    changedData.set('name', { data: name, changedDataType: ChangedDataType.STRING });
-    changedData.set('user', { data: author, changedDataType: ChangedDataType.STRING });
+    const changedData: Record<string, MessageData> = {
+      project: { data: project, changedDataType: ChangedDataType.PROJECT },
+    };
     const message: QueueMessage = {
       sender: MessagingParty.SERVICE_ISSUES,
       recipient: MessagingParty.SERVICE_USER,
-      action: Action.UPDATE,
+      action: Action.CREATE,
       changedDataKey: IssueServiceChangedDataKey.PROJECT_AUTHOR,
       changedData,
     };
-    const sent = await mq.sendMessage(channel, MessagingQueue.SERVICE_ISSUES_QUEUE, message);
+    console.log(message);
+    const sent = await mq.sendMessage(channel, MessagingQueue.SERVICE_USER_QUEUE, message);
     if (!sent) {
       throw new mongoose.Error('Problem with adding the project to the user.');
     }
@@ -82,9 +83,10 @@ export const updateProject = async (updated: Partial<ProjectDocument>): Promise<
     if (updated.contributors !== undefined) {
       const channel: Channel | null = mq.getUsersChannel();
       if (channel == null) throw new Error('Error updating contributors.');
-      const changedData = new Map<string, MessageData>();
-      changedData.set('project', { data: project, changedDataType: ChangedDataType.PROJECT });
-      changedData.set('contributors', { data: updated.contributors, changedDataType: ChangedDataType.STRING_ARRAY });
+      const changedData: Record<string, MessageData> = {
+        project: { data: project, changedDataType: ChangedDataType.PROJECT },
+        contributors: { data: updated.contributors, changedDataType: ChangedDataType.STRING_ARRAY },
+      };
       const message: QueueMessage = {
         sender: MessagingParty.SERVICE_ISSUES,
         recipient: MessagingParty.SERVICE_USER,
@@ -92,6 +94,7 @@ export const updateProject = async (updated: Partial<ProjectDocument>): Promise<
         changedDataKey: IssueServiceChangedDataKey.PROJECT_CONTRIBUTORS,
         changedData,
       };
+      console.log(message);
       const sent = mq.sendMessage(channel, MessagingQueue.SERVICE_USER_QUEUE, message);
       if (!sent) throw new Error('Error sending a message while updating contributors.');
 
@@ -119,8 +122,9 @@ export const deleteProject = async (name: string): Promise<boolean> => {
     const channel: Channel | null = mq.getUsersChannel();
     /* TODO properly handle deletion. */
     if (channel == null) throw new Error('Project deleted but not properly.');
-    const changedData = new Map<string, MessageData>();
-    changedData.set('project', { data: deleted, changedDataType: ChangedDataType.PROJECT });
+    const changedData: Record<string, MessageData> = {
+      project: { data: deleted, changedDataType: ChangedDataType.PROJECT },
+    };
     const message: QueueMessage = {
       sender: MessagingParty.SERVICE_ISSUES,
       recipient: MessagingParty.SERVICE_USER,
@@ -128,6 +132,7 @@ export const deleteProject = async (name: string): Promise<boolean> => {
       changedDataKey: IssueServiceChangedDataKey.PROJECT_AUTHOR,
       changedData,
     };
+    console.log(message);
     const sent = mq.sendMessage(channel, MessagingQueue.SERVICE_USER_QUEUE, message);
     if (!sent) throw new Error('Project deleted but message could');
     return true;
@@ -144,18 +149,18 @@ export const deleteProject = async (name: string): Promise<boolean> => {
 export const updateProjectIdsMQ = async (message: QueueMessage): Promise<void> => {
   try {
     if (message == null || message.changedData == null) throw new Error("Message or it's data is null.");
-    if (message.changedData.get('user') == null) throw new Error('User not provided.');
-    if (message.changedData.get('user')?.changedDataType !== ChangedDataType.USER) throw new Error('User is wrong data type.');
+    if (message.changedData.user == null) throw new Error('User not provided.');
+    if (message.changedData.user?.changedDataType !== ChangedDataType.USER) throw new Error('User is wrong data type.');
 
-    const user = message?.changedData?.get('user')?.data as UserDocument;
+    const user = message?.changedData?.user?.data as UserDocument;
     if (user == null) throw new Error('User provided is null.');
 
-    if (message.changedData.get('projects') == null) throw new Error('Projects not provided');
-    if (message?.changedData?.get('projects')?.changedDataType !== ChangedDataType.STRING_ARRAY) {
+    if (message.changedData.projects == null) throw new Error('Projects not provided');
+    if (message?.changedData?.projects?.changedDataType !== ChangedDataType.STRING_ARRAY) {
       throw new Error('Projects is wrong data type');
     }
 
-    const newProjects = message?.changedData?.get('project_ids')?.data as string[];
+    const newProjects = message?.changedData?.projects?.data as string[];
     const oldProjects = user.profile.projects as string[];
     if (newProjects == null || oldProjects == null) throw new Error('Projects are null.');
 
@@ -199,15 +204,15 @@ export const updateProjectIdsMQ = async (message: QueueMessage): Promise<void> =
 export const updateProjectTeamNameMQ = async (message: QueueMessage): Promise<void> => {
   try {
     if (message == null || message.changedData == null) throw new Error("Message or it's data is undefined");
-    if (message.changedData.get('old_name') == null) throw new Error('Old name not provided.');
-    if (message.changedData.get('old_name')?.changedDataType !== ChangedDataType.STRING) throw new Error('Old name data type is wrong.');
+    if (message.changedData.oldName == null) throw new Error('Old name not provided.');
+    if (message.changedData.oldName?.changedDataType !== ChangedDataType.STRING) throw new Error('Old name data type is wrong.');
 
-    const oldName = message.changedData.get('old_name')?.data as string;
+    const oldName = message.changedData.oldName?.data as string;
 
-    if (message.changedData.get('new_name') == null) throw new Error('New name not provided.');
-    if (message.changedData.get('new_name')?.changedDataType !== ChangedDataType.STRING) throw new Error('New name data type is wrong.');
+    if (message.changedData.newName == null) throw new Error('New name not provided.');
+    if (message.changedData.newName?.changedDataType !== ChangedDataType.STRING) throw new Error('New name data type is wrong.');
 
-    const newName = message.changedData.get('new_name')?.data as string;
+    const newName = message.changedData.newName?.data as string;
 
     const projects: ProjectDocument[] = await Project.find({ teamName: oldName });
     if (projects == null) throw new Error("Couldn't find the project.");

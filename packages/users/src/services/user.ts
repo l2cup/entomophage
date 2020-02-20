@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
 import { Channel } from 'amqplib';
 import {
-  mq,
-  MessagingParty,
+  mq, MessagingParty,
   MessagingQueue, Action,
   UserServiceChangedDataKey,
   QueueMessage, MessageData,
@@ -120,9 +119,10 @@ export const updateUser = async (updated: Partial<UserDocument>): Promise<UserDo
     if (updated.profile?.projects !== undefined) {
       const channel: Channel | null = mq.getIssuesChannel();
       if (channel == null) throw new Error('Channel error while updating projectIds.');
-      const changedData = new Map<string, MessageData>();
-      changedData.set('user', { data: user, changedDataType: ChangedDataType.USER });
-      changedData.set('projects', { data: updated.profile?.projects, changedDataType: ChangedDataType.STRING_ARRAY });
+      const changedData: Record<string, MessageData> = {
+        user: { data: user, changedDataType: ChangedDataType.USER },
+        projects: { data: updated?.profile.projects, changedDataType: ChangedDataType.STRING_ARRAY },
+      };
       const message: QueueMessage = {
         sender: MessagingParty.SERVICE_USER,
         recipient: MessagingParty.SERVICE_ISSUES,
@@ -196,19 +196,19 @@ export const createUser = async (username: string, email: string, password: stri
 export const updateUserProjectIdsMQ = async (message: QueueMessage): Promise<void> => {
   try {
     if (message == null || message.changedData == null) throw new Error("Message or it's data is null.");
-    if (message.changedData.get('project') == null) throw new Error('Project not provided.');
-    if (message.changedData.get('project')?.changedDataType !== ChangedDataType.PROJECT) throw new Error('Project is wrong data type.');
+    if (message.changedData.project == null) throw new Error('Project not provided.');
+    if (message.changedData.project?.changedDataType !== ChangedDataType.PROJECT) throw new Error('Project is wrong data type.');
 
     /* project holds old contributors */
-    const project = message.changedData.get('project')?.data as ProjectDocument;
+    const project = message.changedData.project?.data as ProjectDocument;
     if (project == null) throw new Error('Provided project is null.');
 
-    if (message.changedData.get('contributors') == null) throw new Error('Contributors not provided.');
-    if (message.changedData.get('contributors')?.changedDataType !== ChangedDataType.STRING_ARRAY) {
+    if (message.changedData.contributors == null) throw new Error('Contributors not provided.');
+    if (message.changedData.contributors.changedDataType !== ChangedDataType.STRING_ARRAY) {
       throw new Error('Contributors is wrong data type.');
     }
 
-    const newContributors = message.changedData.get('contributors')?.data as string[];
+    const newContributors = message.changedData.contributors?.data as string[];
     if (newContributors == null) throw new Error('Provided contributors is null.');
 
     if (project.contributors.length > newContributors.length) {
@@ -257,17 +257,22 @@ export const updateUserProjectIdsMQ = async (message: QueueMessage): Promise<voi
  */
 export const updateUserProjectAuthorMQ = async (message: QueueMessage): Promise<void> => {
   try {
+    console.log(message);
     if (message == null || message.changedData == null) throw new Error("Message or it's data is null.");
-    if (message.changedData.get('project') == null) throw new Error('Project not provided.');
-    if (message.changedData.get('project')?.changedDataType !== ChangedDataType.PROJECT) throw new Error('Project is wrong data type.');
+    if (message.changedData.project == null) throw new Error('Project not provided.');
+    if (message.changedData.project?.changedDataType !== ChangedDataType.PROJECT) throw new Error('Project is wrong data type.');
 
-    const project = message.changedData.get('project')?.data as ProjectDocument;
+    const project = message.changedData.project?.data as ProjectDocument;
     if (project == null) throw new Error('Provided project is null.');
 
     const user = await User.findOne({ username: project.author });
     if (user == null) throw new Error('Author not found.');
     if (user.profile == null || user.profile.projects == null) throw new Error('Profile is nul.');
-    user.profile.projects = user.profile.projects.filter((name: string) => name !== project.name);
+    if (message.action === Action.DELETE) {
+      user.profile.projects = user.profile.projects.filter((name: string) => name !== project.name);
+    } else {
+      user.profile.projects.push(`${user.username}/${project.name}`);
+    }
     await user.save();
   } catch (err) {
     console.error(err);

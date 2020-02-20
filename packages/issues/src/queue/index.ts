@@ -38,11 +38,11 @@ const onMessage = async (message: ConsumeMessage | null): Promise<void> => {
 };
 
 const listenForMessages = async (): Promise<void> => {
-  channel = mq.getUsersChannel();
+  channel = mq.getIssuesChannel();
   if (channel == null) throw new Error('Channel not initiated.');
   try {
     channel.prefetch(1);
-    channel.consume(MessagingQueue.SERVICE_ISSUES_QUEUE, onMessage, { noAck: true });
+    channel.consume(MessagingQueue.SERVICE_ISSUES_QUEUE, onMessage, { noAck: false });
   } catch (err) {
     console.error(err);
   }
