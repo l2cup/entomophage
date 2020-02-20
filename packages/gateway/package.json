@@ -1,0 +1,39 @@
+{
+    "name": "@entomophage/gateway",
+    "version": "0.1.0",
+    "description": "Entomophage bug and issue tracker API gateway.",
+    "main": "dist/server.js",
+    "types": "dist/index.d.ts",
+    "directories": {
+        "test": "test"
+    },
+    "files": [
+        "src",
+        "dist"
+    ],
+    "scripts": {
+        "start": "yarn serve",
+        "clean": "rimraf ./dist",
+        "prebuild": "yarn clean",
+        "serve": "node dist/server.js",
+        "serve-watch": "yarn nodemon -r @ts-tools/node/r --ext ts,tsx,js,json ./src/server.ts",
+        "build": "tsc -p tsconfig.build.json",
+        "watch-ts": "tsc -wp tsconfig.build.json",
+        "lint": "tsc --noEmit -p tsconfig.build.json && eslint \"**/*.{js,ts}\" --quiet --fix",
+        "debug": "yarn build && yarn serve-debug",
+        "serve-debug": "nodemon --inspect dist/server.js"
+    },
+    "author": "Uros 'l2cup' Nikolic",
+    "license": "MIT",
+    "dependencies": {
+        "axios": "^0.19.2",
+        "cors": "^2.8.5",
+        "dotenv": "^8.2.0",
+        "express": "^4.17.1",
+        "http-status-codes": "^1.4.0",
+        "jsonwebtoken": "^8.5.1",
+        "mongoose": "^5.8.11",
+        "morgan": "^1.9.1"
+    },
+    "private": true
+}

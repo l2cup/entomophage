@@ -59,7 +59,7 @@ export const getIssues = async (req: Request, res: Response, next: NextFunction)
 };
 
 /**
- * @method POST /issues
+ * @method POST /issue
  * @description postIssue is a post request for the '/issue' route used to post a issue;
  *
  * Response is the issue posted to the database or an error with description.
@@ -102,7 +102,7 @@ export const postIssue = async (req: Request, res: Response, next: NextFunction)
 };
 
 /**
- * @method PUT /issues
+ * @method PUT /issue
  * @description putUpdateIssue is a put request for the '/issue' route used to update a issue;
  *
  * Response is the issue updated to the database or an error with description.

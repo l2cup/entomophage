@@ -1,0 +1,11 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "module": "commonjs",
+        "outDir": "dist",
+        "paths": {
+            "@entomophage/*": ["node_modules/@entomophage/*/src"]
+        }
+    },
+    "include": ["src"]
+}

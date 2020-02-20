@@ -257,7 +257,6 @@ export const updateUserProjectIdsMQ = async (message: QueueMessage): Promise<voi
  */
 export const updateUserProjectAuthorMQ = async (message: QueueMessage): Promise<void> => {
   try {
-    console.log(message);
     if (message == null || message.changedData == null) throw new Error("Message or it's data is null.");
     if (message.changedData.project == null) throw new Error('Project not provided.');
     if (message.changedData.project?.changedDataType !== ChangedDataType.PROJECT) throw new Error('Project is wrong data type.');
