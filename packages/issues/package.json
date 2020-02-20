@@ -1,21 +1,21 @@
 {
-    "name": "@entomophage/users",
+    "name": "@entomophage/issues",
     "version": "0.3.0",
-    "description": "Entomophage bug and issue tracker user service.",
+    "description": "Entomophage bug and issue tracker issues and projects service.",
     "main": "dist/server.js",
-    "types" : "dist/server.d.ts",
+    "types": "dist/index.d.ts",
     "directories": {
         "test": "test"
     },
     "files": [
-        "dist",
-        "src"
+        "src",
+        "dist"
     ],
     "scripts": {
         "start": "yarn serve",
         "clean": "rimraf ./dist",
         "prebuild": "yarn clean",
-        "serve" : "node ./dist/server.js",
+        "serve": "node dist/server.js",
         "serve-watch": "yarn nodemon -r @ts-tools/node/r --ext ts,tsx,js,json ./src/server.ts",
         "build": "tsc -p tsconfig.build.json",
         "watch-ts": "tsc -wp tsconfig.build.json",
@@ -28,14 +28,12 @@
     "dependencies": {
         "@entomophage/common": "^0.2.0",
         "amqplib": "^0.5.5",
-        "bcrypt": "^3.0.7",
         "cors": "^2.8.5",
         "dotenv": "^8.2.0",
         "express": "^4.17.1",
         "http-status-codes": "^1.4.0",
         "mongoose": "^5.8.11",
-        "morgan": "^1.9.1",
-        "package.json": "^2.0.1"
+        "morgan": "^1.9.1"
     },
     "private": true
 }

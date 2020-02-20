@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as HttpStatus from 'http-status-codes';
-import * as teamService from '../services/team';
-import { TeamDocument } from '../models/Team';
+import { TeamDocument } from '@entomophage/common';
+import { teamService } from '../services';
 
 /**
  * @method GET /team/?name=""

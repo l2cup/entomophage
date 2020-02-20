@@ -12,4 +12,6 @@ It uses mongo for data storage, the configuration for the database connection sh
 
 ### Nodemon
 
-Nodemon is available as a yarn script using ```yarn serve-watch``` but it watches on the .js file so for now building when changing .ts files is necesarry. There is a way for watching .ts files and partial building but i had no need for it as the build times are small.
+Nodemon is available as a yarn script using ```yarn serve-watch``` it uses @ts-node so it watches over .ts files and allows development without rebuilding when changing files.
+
+As sometimes the module resolution will work in typescript and not in javascript please run node directly over the javascript files before pushing to production to see if the module resolution is working.

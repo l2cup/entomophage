@@ -1,11 +1,23 @@
 import mongoose from 'mongoose';
-import { User, UserDocument } from '../models/User';
-import { Team } from '../models/Team';
+import { Channel } from 'amqplib';
+import {
+  mq,
+  MessagingParty,
+  MessagingQueue, Action,
+  UserServiceChangedDataKey,
+  QueueMessage, MessageData,
+  ChangedDataType,
+  UserDocument,
+  ProjectDocument,
+} from '@entomophage/common';
+import User from '../models/User';
+import Team from '../models/Team';
+
 
 /**
  * @description getUserByEmail fetches a single user from the storage by email
  * @param email
- * @returns {Promise<UserDocument>}
+ * @returns {Promise<UserDocument | null>}
  */
 export const getUserByEmail = async (email: string): Promise<UserDocument | null> => {
   try {
@@ -21,7 +33,7 @@ export const getUserByEmail = async (email: string): Promise<UserDocument | null
 /**
  * @description getUserByUsername fetches single user from the storage by email
  * @param username
- * @returns {Promise<UserDocument>}
+ * @returns {Promise<UserDocument | null>}
  */
 export const getUserByUsername = async (username: string): Promise<UserDocument | null> => {
   try {
@@ -85,7 +97,6 @@ export const getUsersByTeamName = async (teamName: string): Promise<UserDocument
  * updates and returns the updated UserDocument
  * @param {UserDocument} updated
  * @returns {Promise<UserDocument | null>}
- * TODO mq to send a message to the other services to update user
  */
 export const updateUser = async (updated: Partial<UserDocument>): Promise<UserDocument | null> => {
   try {
@@ -106,7 +117,23 @@ export const updateUser = async (updated: Partial<UserDocument>): Promise<UserDo
     if (updated.profile?.website !== undefined) user.profile.website = updated.profile?.website;
     if (updated.profile?.teamName !== undefined) user.profile.teamName = updated.profile?.teamName;
     if (updated.profile?.teamId !== undefined) user.profile.teamId = updated.profile?.teamId;
-    if (updated.profile?.projectIds !== undefined) user.profile.projectIds = updated.profile?.projectIds;
+    if (updated.profile?.projects !== undefined) {
+      const channel: Channel | null = mq.getIssuesChannel();
+      if (channel == null) throw new Error('Channel error while updating projectIds.');
+      const changedData = new Map<string, MessageData>();
+      changedData.set('user', { data: user, changedDataType: ChangedDataType.USER });
+      changedData.set('projects', { data: updated.profile?.projects, changedDataType: ChangedDataType.STRING_ARRAY });
+      const message: QueueMessage = {
+        sender: MessagingParty.SERVICE_USER,
+        recipient: MessagingParty.SERVICE_ISSUES,
+        action: Action.UPDATE,
+        changedDataKey: UserServiceChangedDataKey.USER_PROJECTIDS,
+        changedData,
+      };
+      const sent = mq.sendMessage(channel, MessagingQueue.SERVICE_ISSUES_QUEUE, message);
+      if (!sent) throw new Error('Message error while updating projectIds.');
+      user.profile.projects = updated.profile?.projects;
+    }
     await user.save();
     return user;
   } catch (err) {
@@ -130,7 +157,7 @@ export const deleteUser = async (username: string): Promise<boolean> => {
       const deleted = await User.deleteOne(user);
       return deleted > 0;
     }
-    team.memberIds = team.memberIds.filter((v) => v !== user.id);
+    team.members = team.members.filter((memberUsername) => memberUsername !== user.username);
     await Promise.all([team.save(), User.deleteOne(user)]);
     return true;
   } catch (err) {
@@ -158,5 +185,91 @@ export const createUser = async (username: string, email: string, password: stri
     return user;
   } catch (err) {
     return err;
+  }
+};
+
+/**
+ * @description updateUserProjectIdsMQ updates all the user projectIds.
+ * @param {QueueMessage} message
+ * @returns {Promise<void>}
+ */
+export const updateUserProjectIdsMQ = async (message: QueueMessage): Promise<void> => {
+  try {
+    if (message == null || message.changedData == null) throw new Error("Message or it's data is null.");
+    if (message.changedData.get('project') == null) throw new Error('Project not provided.');
+    if (message.changedData.get('project')?.changedDataType !== ChangedDataType.PROJECT) throw new Error('Project is wrong data type.');
+
+    /* project holds old contributors */
+    const project = message.changedData.get('project')?.data as ProjectDocument;
+    if (project == null) throw new Error('Provided project is null.');
+
+    if (message.changedData.get('contributors') == null) throw new Error('Contributors not provided.');
+    if (message.changedData.get('contributors')?.changedDataType !== ChangedDataType.STRING_ARRAY) {
+      throw new Error('Contributors is wrong data type.');
+    }
+
+    const newContributors = message.changedData.get('contributors')?.data as string[];
+    if (newContributors == null) throw new Error('Provided contributors is null.');
+
+    if (project.contributors.length > newContributors.length) {
+      /* Contributors were deleted. */
+      const filteredContributors = project.contributors.filter((e) => !newContributors.includes(e));
+      let done: boolean[] = await Promise.all(filteredContributors.map(async (contributorUsername: string) => {
+        let user = await User.findOne({ username: contributorUsername });
+        if (user == null) return false;
+        /* This is an error, but still we return true because the user isn't even a contributor,
+         * so the operation is kinda succesful. */
+        if (user.profile == null) return true;
+        if (user.profile.projects == null) return true;
+        user.profile.projects = user.profile.projects.filter((name) => name !== project.name);
+        user = await user.save();
+        if (user == null) return false;
+        return true;
+      }));
+      done = done.filter((e) => e);
+      if (done.length !== filteredContributors.length) throw new Error('There was an error updating users. Users partialy updated.');
+    } else {
+      const filteredContributors = newContributors.filter((e) => !project.contributors.includes(e));
+      let done: boolean[] = await Promise.all(filteredContributors.map(async (contributorUsername) => {
+        let user = await User.findOne({ username: contributorUsername });
+        if (user == null) return false;
+        if (user.profile == null) user.profile = { projects: [] };
+        if (user.profile.projects == null) user.profile.projects = [];
+        user.profile.projects.push(project.name);
+        user = await user.save();
+        if (user == null) return false;
+        return true;
+      }));
+      /* Contributors were added. */
+      done = done.filter((e) => e);
+      if (done.length !== filteredContributors.length) throw new Error('There was an error updating users. Users partialy updated.');
+    }
+  } catch (err) {
+    /* TODO better error handling */
+    console.error(err);
+  }
+};
+
+/**
+ * @description updateUserProjectAuthorMQ updates the author's projects.
+ * @param {QueueMessage} message
+ * @returns {Promise<void>}
+ */
+export const updateUserProjectAuthorMQ = async (message: QueueMessage): Promise<void> => {
+  try {
+    if (message == null || message.changedData == null) throw new Error("Message or it's data is null.");
+    if (message.changedData.get('project') == null) throw new Error('Project not provided.');
+    if (message.changedData.get('project')?.changedDataType !== ChangedDataType.PROJECT) throw new Error('Project is wrong data type.');
+
+    const project = message.changedData.get('project')?.data as ProjectDocument;
+    if (project == null) throw new Error('Provided project is null.');
+
+    const user = await User.findOne({ username: project.author });
+    if (user == null) throw new Error('Author not found.');
+    if (user.profile == null || user.profile.projects == null) throw new Error('Profile is nul.');
+    user.profile.projects = user.profile.projects.filter((name: string) => name !== project.name);
+    await user.save();
+  } catch (err) {
+    console.error(err);
   }
 };

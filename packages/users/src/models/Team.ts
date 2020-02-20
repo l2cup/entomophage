@@ -1,36 +1,18 @@
 import mongoose from 'mongoose';
+import { TeamDocument, getMemberCount, getProjectCount } from '@entomophage/common';
 
-export type TeamDocument = mongoose.Document & {
-  name: string;
-  website: string;
-
-  leaderId: string;
-  memberIds: string[];
-  projectIds: string[];
-
-  getMemberCount: getter<number>;
-  getProjectCount: getter<number>;
-}
-
-type getter<T> = () => T;
-
-const getMemberCount: getter<number> = function getMemberCount(): number {
-  return this.memberIds.length;
-};
-
-const getProjectCount: getter<number> = function getProjectCount(): number {
-  return this.projectIds.length;
-};
 
 const teamSchema = new mongoose.Schema({
   name: { type: String, unique: true, required: true },
   leaderId: { type: String, unique: true, required: true },
   website: String,
-  memberIds: [String],
-  projectIds: [String],
+  members: [String],
+  projects: [String],
 });
 
 teamSchema.method('getMemberCount', getMemberCount);
 teamSchema.method('getProjectCount', getProjectCount);
 
-export const Team = mongoose.model<TeamDocument>('Team', teamSchema);
+const Team = mongoose.model<TeamDocument>('Team', teamSchema);
+
+export default Team;

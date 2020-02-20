@@ -6,9 +6,7 @@
         "lib": [
             "es2019"
         ],
-
         /* Module resolution options */
-
         "moduleResolution": "node", /* Module resolution strategy */
         "declaration": true,
         "declarationMap": true,

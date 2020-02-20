@@ -14,6 +14,15 @@ To build all packages run ```yarn build``` which will build all packages paralle
 
 To build a single package, navigate to the package's directory and run ```yarn build``` to build with it's appropriate tsconfig.build.json file, or manually build using the build file. Building without using the build file will build using the global tsconfig.json which is not to be used for building, but still has an outDir set as ./dest.
 
+## Service communication
+
+Services use a messaging queue to communicate between them. I use rabbitmq as a messaging queue to connect them.
+The services won't start if there isn't a messaging queue running on the default port.
+
+This is used for communication as a non blocking less resourceful method than a rest api between them.
+
+__As this is a work in progress i will later add an .env field for queues. Right now it is only used in non production environment.__
+
 ### Linting
 
 The .eslintrc file is in js format. This is because of the linter not knowing where to find the tsconfig.json file as it changes root when first loading the linter configuration in the editor. The workaround uses ```tsconfigRootDir: __dirname``` which sets the tsconfig dir to the root even when opening files from a package and the pwd isn't root.

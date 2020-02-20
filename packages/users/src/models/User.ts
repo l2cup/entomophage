@@ -1,27 +1,6 @@
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
-
-export type UserDocument = mongoose.Document & {
-  username: string;
-  email: string;
-  password: string;
-
-  profile: {
-    name?: string;
-    gender?: string;
-    location?: string;
-    website?: string;
-    teamName?: string;
-    teamId?: string;
-    projectIds?: string[];
-  };
-
-  comparePassword: comparePasswordFunction;
-}
-
-
-type comparePasswordFunction =
-  (candidatePassword: string) => Promise<boolean>;
+import { UserDocument, comparePasswordFunction } from '@entomophage/common';
 
 const comparePassword: comparePasswordFunction = async function comparePassword(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
@@ -29,7 +8,7 @@ const comparePassword: comparePasswordFunction = async function comparePassword(
 
 const userSchema = new mongoose.Schema({
   username: {
-    type: String, unique: true, required: true, lowercase: true, minlength: 3,
+    type: String, unique: true, required: true, lowercase: true, minlength: 3, immutable: true,
   },
   email: {
     type: String, unique: true, required: true, lowercase: true,
@@ -45,7 +24,7 @@ const userSchema = new mongoose.Schema({
     website: String,
     teamName: String,
     teamId: String,
-    projectIds: [String],
+    projects: [String],
   },
 
 }, { timestamps: true });
@@ -65,4 +44,6 @@ userSchema.pre('save', function save(next) {
 
 userSchema.method('comparePassword', comparePassword);
 
-export const User = mongoose.model<UserDocument>('User', userSchema);
+const User = mongoose.model<UserDocument>('User', userSchema);
+
+export default User;

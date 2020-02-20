@@ -1,6 +1,15 @@
 import mongoose from 'mongoose';
-import { Team, TeamDocument } from '../models/Team';
-import { UserDocument } from '../models/User';
+import { Channel } from 'amqplib';
+import {
+  mq,
+  MessagingParty,
+  MessagingQueue, Action,
+  UserServiceChangedDataKey,
+  QueueMessage, MessageData,
+  ChangedDataType,
+  TeamDocument, UserDocument,
+} from '@entomophage/common';
+import Team from '../models/Team';
 import * as userService from './user';
 
 /**
@@ -26,7 +35,7 @@ export const getTeam = async (name: string): Promise<TeamDocument | null> => {
  * @param {string} name
  * @param {string} leaderUsername
  * @param {string[]} usernames
-*  @returns {Promise<TeamDocument | null>} */
+ *  @returns {Promise<TeamDocument | null>} */
 export const createTeam = async (name: string, leaderUsername: string, usernames: string[]): Promise<TeamDocument | null> => {
   try {
     if (leaderUsername == null) throw new mongoose.Error('Leader not provided.');
@@ -34,13 +43,16 @@ export const createTeam = async (name: string, leaderUsername: string, usernames
     if (existingTeam != null) throw new mongoose.Error('Team already exists');
     const leader = await userService.getUserByUsername(leaderUsername);
     if (leader == null) throw new mongoose.Error('Leader not found.');
-    let memberIds: string[] = await Promise.all(usernames.map(async (username: string) => {
+
+    /* This actually checks if all users exist, and if they do it just returns the username. */
+    let members: string[] = await Promise.all(usernames.map(async (username: string) => {
       const user = await userService.getUserByUsername(username);
       if (user == null) return '';
-      return user.id;
+      return user.username;
     }));
-    memberIds = memberIds.filter((id) => id !== '');
-    const newTeam = new Team({ name, leaderId: leader.id, memberIds });
+    members = members.filter((id) => id !== '');
+
+    const newTeam = new Team({ name, leader: leader.username, members });
     if (newTeam == null) return null;
     await newTeam.save();
     return newTeam;
@@ -59,8 +71,8 @@ export const deleteTeam = async (name: string): Promise<boolean> => {
   try {
     const team = await Team.findOneAndDelete({ name });
     if (team == null) return false;
-    team.memberIds.forEach(async (id) => {
-      const partialUpdated: Partial<UserDocument> = { id, profile: { teamId: '', teamName: '' } };
+    team.members.forEach(async (id) => {
+      const partialUpdated: Partial<UserDocument> = { id, profile: { teamName: '' } };
       const updated = await userService.updateUser(partialUpdated);
       if (updated == null) return false;
       return true;
@@ -81,9 +93,9 @@ export const removeFromTeam = async (username: string): Promise<TeamDocument | n
   try {
     const user = await userService.getUserByUsername(username);
     if (user == null) throw new mongoose.Error('User not found.');
-    const team = await Team.findById(user.profile?.teamId);
+    const team = await Team.findOne({ name: user.profile?.teamName });
     if (team == null) throw new mongoose.Error('Team not found.');
-    team.memberIds = team.memberIds.filter((id) => id !== team.id);
+    team.members = team.members.filter((memberUsername) => memberUsername !== username);
     await team.save();
     return team;
   } catch (err) {
@@ -113,11 +125,33 @@ export const updateTeam = async (updated: Partial<TeamDocument>, newName?: strin
     if (team == null) return null;
     if (newName !== undefined && newName !== '') {
       const newNameTeam = await Team.findOne({ name: newName });
-      if (newNameTeam !== undefined) team.name = newName as string;
+      if (newNameTeam !== undefined) {
+        team.name = newName as string;
+        /* Updates all team's members teamName to the new name */
+        const updatedUsers = await Promise.all(team.members.map(async (username) => userService.updateUser({
+          username,
+          profile: { teamName: newName },
+        })));
+        /* Mq logic is here because if the name isn't changed, no need to go into this branch */
+        const channel: Channel | null = mq.getIssuesChannel();
+        if (channel == null) throw new Error('Channel error while updating name.');
+        const changedData = new Map<string, MessageData>();
+        changedData.set('old_name', { data: team.name, changedDataType: ChangedDataType.STRING });
+        changedData.set('new_name', { data: newName, changedDataType: ChangedDataType.STRING });
+        const message: QueueMessage = {
+          sender: MessagingParty.SERVICE_USER,
+          recipient: MessagingParty.SERVICE_ISSUES,
+          action: Action.UPDATE,
+          changedDataKey: UserServiceChangedDataKey.USER_TEAMNAME,
+          changedData,
+        };
+        const sent = mq.sendMessage(channel, MessagingQueue.SERVICE_ISSUES_QUEUE, message);
+        if (!sent) throw new Error('Message error while updating name.');
+      }
     }
-    if (updated.memberIds !== undefined) team.memberIds = updated.memberIds;
-    if (updated.projectIds !== undefined) team.projectIds = updated.projectIds;
-    if (updated.leaderId !== undefined) team.leaderId = updated.leaderId;
+    if (updated.members !== undefined) team.members = updated.members;
+    if (updated.projects !== undefined) team.projects = updated.projects;
+    if (updated.leader !== undefined) team.leader = updated.leader;
     if (updated.website !== undefined) team.website = updated.website;
     await team.save();
     return team;

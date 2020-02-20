@@ -10,7 +10,8 @@ router.post('/register', userRoutes.postRegister);
 router.post('/login', userRoutes.postLogin);
 
 router.get('/user', userRoutes.getUser);
-router.post('/user', userRoutes.postUpdateUser);
+router.post('/user', userRoutes.postRegister);
+router.put('/user', userRoutes.putUpdateUser);
 router.delete('/user', userRoutes.deleteUser);
 
 /* Team routes */

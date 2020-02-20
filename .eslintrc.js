@@ -15,15 +15,17 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2019,
     sourceType: 'module',
-    project: './tsconfig.json',
+    project: ['./tsconfig.json', './packages/*/tsconfig.json'],
 
     /* ESLint can't work without this. It sets the root dir to the directory of the whole monorepo 
      * so eslint knows where to find the tsconfig.json. */
     tsconfigRootDir: __dirname
 
   },
+    
   plugins: [
-    '@typescript-eslint'
+    '@typescript-eslint',
+    'import'
   ],
   /* Resolving clashing airbnb rules for import/extensions. Otherwise it requires .ts at the end of import. */
   rules: {

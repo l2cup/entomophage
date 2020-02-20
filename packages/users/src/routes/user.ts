@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import * as HttpStatus from 'http-status-codes';
-import * as userService from '../services/user';
-import { UserDocument } from '../models/User';
+import { UserDocument } from '@entomophage/common';
+import { userService } from '../services';
 
 /**
- * @method POST /register
+ * @method POST /register /user
  * @description postRegister is a post request for the '/register' route.
  * It takes it's parameters from a body and tries to register a new user
  *
@@ -87,8 +87,8 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
 };
 
 /**
- * @method POST /user
- * @description postRegister is a post request for the '/user' route.
+ * @method PUT /user
+ * @description putUpdateUser is a post request for the '/user' route.
  * It takes the body and tries to find if the user exists. If it does it updates the user with the passed values.
  *
  * Response is either the updated user or an error if no user was found.
@@ -98,7 +98,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  * @returns {Promise<void>}
  */
 
-export const postUpdateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const putUpdateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (req.body.username === undefined) {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'Username not provided' });

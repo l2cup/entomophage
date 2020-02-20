@@ -18,7 +18,7 @@ app.use(morgan('common'));
 app.use(cors());
 
 
-app.set('port', PORT || 5050);
+app.set('port', PORT || 5060);
 
 app.use(router);
 
@@ -42,6 +42,5 @@ if (DB_URI !== undefined) {
   console.error('Database connection URI undefined. Exiting...');
   process.exit(1);
 }
-
 
 export default app;
