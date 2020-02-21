@@ -1,7 +1,7 @@
 module.exports = {
   env: {
     es2020: true,
-    node: true
+    node: true,
   },
   extends: [
     'airbnb-base',
@@ -15,14 +15,13 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2019,
     sourceType: 'module',
-    project: ['./tsconfig.json', './packages/*/tsconfig.json'],
+    project: ['./tsconfig.json', './packages/*/tsconfig.build.json', './packages/*/tsconfig.json'],
 
     /* ESLint can't work without this. It sets the root dir to the directory of the whole monorepo 
      * so eslint knows where to find the tsconfig.json. */
     tsconfigRootDir: __dirname
-
   },
-    
+
   plugins: [
     '@typescript-eslint',
     'import'
@@ -36,20 +35,21 @@ module.exports = {
         js: 'never',
         jsx: 'never',
         ts: 'never',
-        tsx: 'never'
+        tsx: 'never',
+        vue: 'never',
       }
     ],
     'max-len': 1
   },
   /* Resolving clashing airbnb settings for import */
   settings: {
-    'import/extensions': ['.js','.jsx','.ts','.tsx'],
+    'import/extensions': ['.js', '.jsx', '.ts', '.tsx', '.vue'],
     'import/parsers': {
-      '@typescript-eslint/parser': ['.ts','.tsx']
+      '@typescript-eslint/parser': ['.ts', '.tsx']
     },
     'import/resolver': {
       'node': {
-        'extensions': ['.js','.jsx','.ts','.tsx']
+        'extensions': ['.js', '.jsx', '.ts', '.tsx', '.vue']
       }
     }
   }

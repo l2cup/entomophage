@@ -1,30 +1,26 @@
 {
     "name": "@entomophage/users",
     "version": "0.3.0",
+    "private": true,
     "description": "Entomophage bug and issue tracker user service.",
-    "main": "dist/server.js",
-    "types" : "dist/server.d.ts",
-    "directories": {
-        "test": "test"
+    "author": "Uros 'l2cup' Nikolic",
+    "scripts": {
+        "serve": "node ./dist/server.js",
+        "build": "tsc -p tsconfig.build.json",
+        "lint": "tsc --noEmit -p tsconfig.build.json && eslint \"**/*.{js,ts}\" --quiet --fix",
+        "clean": "rimraf ./dist",
+        "debug": "yarn build && yarn serve-debug",
+        "prebuild": "yarn clean",
+        "serve-debug": "nodemon --inspect dist/server.js",
+        "serve-watch": "yarn nodemon -r @ts-tools/node/r --ext ts,tsx,js,json ./src/server.ts",
+        "start": "yarn serve",
+        "watch-ts": "tsc -wp tsconfig.build.json"
     },
+    "main": "dist/server.js",
     "files": [
         "dist",
         "src"
     ],
-    "scripts": {
-        "start": "yarn serve",
-        "clean": "rimraf ./dist",
-        "prebuild": "yarn clean",
-        "serve" : "node ./dist/server.js",
-        "serve-watch": "yarn nodemon -r @ts-tools/node/r --ext ts,tsx,js,json ./src/server.ts",
-        "build": "tsc -p tsconfig.build.json",
-        "watch-ts": "tsc -wp tsconfig.build.json",
-        "lint": "tsc --noEmit -p tsconfig.build.json && eslint \"**/*.{js,ts}\" --quiet --fix",
-        "debug": "yarn build && yarn serve-debug",
-        "serve-debug": "nodemon --inspect dist/server.js"
-    },
-    "author": "Uros 'l2cup' Nikolic",
-    "license": "MIT",
     "dependencies": {
         "@entomophage/common": "^0.2.0",
         "amqplib": "^0.5.5",
@@ -34,8 +30,11 @@
         "express": "^4.17.1",
         "http-status-codes": "^1.4.0",
         "mongoose": "^5.8.11",
-        "morgan": "^1.9.1",
-        "package.json": "^2.0.1"
+        "morgan": "^1.9.1"
     },
-    "private": true
+    "directories": {
+        "test": "test"
+    },
+    "license": "MIT",
+    "types": "dist/server.d.ts"
 }
