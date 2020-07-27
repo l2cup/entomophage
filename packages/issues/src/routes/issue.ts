@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as HttpStatus from 'http-status-codes';
+import { IssueDocument, IssueState, IssueLabel } from '@entomophage/common';
 import { issueService } from '../services';
 
 /**
@@ -18,8 +19,11 @@ export const getIssue = async (req: Request, res: Response, next: NextFunction):
       res.status(HttpStatus.BAD_REQUEST).json('No id provided');
       return;
     }
-    const issue = await issueService.getIssue(req.query.id);
-    if (issue === undefined) {
+    let issue: IssueDocument | null = null;
+    if (req.query.id as string) {
+      issue = await issueService.getIssue(req.query.id as string);
+    }
+    if (issue == null) {
       res.status(HttpStatus.NOT_FOUND).json({ error: 'Issue not found' });
       return;
     }
@@ -46,7 +50,9 @@ export const getIssues = async (req: Request, res: Response, next: NextFunction)
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'Project not provided.' });
       return;
     }
-    const issues = await issueService.getIssues(req.query.project, req.query.state, req.query.label);
+    const state = Number.parseInt(req.query.state as string, 10) as IssueState;
+    const issues = await issueService.getIssues(req.query.project as string,
+      state, req.query.label as IssueLabel);
     if (issues.length === 0) {
       res.status(HttpStatus.NOT_FOUND).json({ error: 'No issues found.' });
       return;

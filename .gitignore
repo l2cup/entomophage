@@ -190,5 +190,6 @@ Sessionx.vim
 # Ignore all local history of files
 .history
 dist/
+.docker
 
 # End of https://www.gitignore.io/api/macos,vim,tags,node,visualstudiocode

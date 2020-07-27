@@ -9,7 +9,7 @@ import router from './routes';
 
 dotenv.config();
 
-const { DB_URI, PORT } = process.env;
+const { DB_URI, PORT, MQ_URI } = process.env;
 const app = express();
 
 app.use(express.json());
@@ -17,18 +17,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('common'));
 app.use(cors());
 
-
 app.set('port', PORT || 5060);
 
 app.use(router);
 
-mq.connectToQueues().then(async () => {
+mq.connectToQueues(MQ_URI as string).then(async () => {
   await listenForMessages();
 }).catch(() => {
   console.error('Error connecting to queues.');
   process.exit(1);
 });
-
 
 if (DB_URI !== undefined) {
   mongoose.connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true }, () => {

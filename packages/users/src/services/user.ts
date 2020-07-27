@@ -12,7 +12,6 @@ import {
 import User from '../models/User';
 import Team from '../models/Team';
 
-
 /**
  * @description getUserByEmail fetches a single user from the storage by email
  * @param email
@@ -22,12 +21,14 @@ export const getUserByEmail = async (email: string): Promise<UserDocument | null
   try {
     const user = await User.findOne({ email });
     if (user == null) return null;
+    if (user !== undefined) {
+      console.log(user.email);
+    }
     return user;
   } catch (err) {
     return err;
   }
 };
-
 
 /**
  * @description getUserByUsername fetches single user from the storage by email
@@ -44,7 +45,6 @@ export const getUserByUsername = async (username: string): Promise<UserDocument 
   }
 };
 
-
 /**
  * @description getUserById fetches single user from the storage by email
  * @param email
@@ -59,7 +59,6 @@ export const getUserById = async (id: string): Promise<UserDocument | null> => {
     return err;
   }
 };
-
 
 /**
  * @description getUsersByTeamId fetches multiple users from the storage by it's teamId

@@ -133,11 +133,11 @@ export const getUser = async (req: Request, res: Response, next: NextFunction): 
     let user: UserDocument | null;
 
     if (req.query.username !== undefined) {
-      user = await userService.getUserByUsername(req.query.username);
+      user = await userService.getUserByUsername(req.query.username as string);
     } else if (req.query.email !== undefined) {
-      user = await userService.getUserByEmail(req.query.email);
+      user = await userService.getUserByEmail(req.query.email as string);
     } else if (req.query.id !== undefined) {
-      user = await userService.getUserById(req.query.id);
+      user = await userService.getUserById(req.query.id as string);
     } else {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'No arguments in query provided. Please provide either an id or an email.' });
       return;
@@ -198,9 +198,9 @@ export const getAllUsersFromTeam = async (req: Request, res: Response, next: Nex
   try {
     let users: UserDocument[] = [];
     if (req.query.teamid !== undefined) {
-      users = await userService.getUsersByTeamId(req.query.teamid);
+      users = await userService.getUsersByTeamId(req.query.teamid as string);
     } else if (req.query.teamname !== undefined) {
-      users = await userService.getUsersByTeamName(req.query.teamname);
+      users = await userService.getUsersByTeamName(req.query.teamname as string);
     } else {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'No arguments in query provided. Please provide either a teamId or a teamName' });
       return;

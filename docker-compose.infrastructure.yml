@@ -1,0 +1,62 @@
+version: '3'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    volumes:
+      - ./.docker/rabbitmq/etc/:/etc/rabbitmq/
+      - ./.docker/rabbitmq/data/:/var/lib/rabbitmq/
+      - ./.docker/rabbitmq/logs/:/var/log/rabbitmq/
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5672:5672
+  issues:
+    image: entomophage/issues
+    container_name: entomophage-issues
+    restart: on-failure
+    build: ./packages/issues/Dockerfile
+    command: yarn serve
+    environment:
+      - MQ_URI=amqp://rabbitmq:5672
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5060:5060
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+  users:
+    image: entomophage/users
+    container_name: entomophage-users
+    restart: on-failure
+    build: ./packages/users/Dockerfile
+    command: yarn serve
+    environment:
+      - MQ_URI=amqp://rabbitmq:5672
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5050:5050
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+  gateway:
+    image: entomophage/gateway
+    container_name: entomophage-gateway
+    restart: on-failure
+    build: ./packages/gateway/Dockerfile
+    command: yarn serve
+    environment:
+      - MQ_URI=amqp://rabbitmq:5672
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5070:5070
+    depends_on:
+      - users
+      - issues
+    links: 
+      - users
+      - issues

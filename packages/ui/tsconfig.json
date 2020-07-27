@@ -7,6 +7,7 @@
         "outDir": "dist",
         "jsx": "preserve",
         "importHelpers": true,
+        "experimentalDecorators": true,
         "types": [
             "webpack-env",
             "vuetify"

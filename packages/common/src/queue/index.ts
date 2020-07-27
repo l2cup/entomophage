@@ -6,9 +6,13 @@ import { MessagingQueue, QueueMessage } from '../types/queue';
  * @param {MessagingQueue} queue
  * @returns {Promise<amqp.Channel | null>}
  */
-export const connectToQueue = async (queue: MessagingQueue): Promise<amqp.Channel | null> => {
+export const connectToQueue = async (queue: MessagingQueue, url: string): Promise<amqp.Channel | null> => {
   try {
-    const connection = await amqp.connect('amqp://localhost');
+    if (url == undefined) {
+      url = 'amqp://localhost';
+      console.log('url undefined');
+    }
+    const connection = await amqp.connect(url);
     if (connection == null) return null;
     const channel = await connection.createChannel();
     if (channel == null) return null;
@@ -48,12 +52,12 @@ let issuesQueueChannel: amqp.Channel | null;
  * It is here as a helper method. It will be replaced by a generalized function when this hits 1.0.0
  * @returns {Promise<void>}
  */
-export const connectToQueues = async (): Promise<void> => {
+export const connectToQueues = async (url: string): Promise<void> => {
   try {
-    usersQueueChannel = await connectToQueue(MessagingQueue.SERVICE_USER_QUEUE);
+    usersQueueChannel = await connectToQueue(MessagingQueue.SERVICE_USER_QUEUE, url);
     if (usersQueueChannel == null) return;
     console.log('QUEUE | Connected to user service queue.');
-    issuesQueueChannel = await connectToQueue(MessagingQueue.SERVICE_ISSUES_QUEUE);
+    issuesQueueChannel = await connectToQueue(MessagingQueue.SERVICE_ISSUES_QUEUE, url);
     if (issuesQueueChannel == null) return;
     console.log('QUEUE | Connected to issue service queue.');
     return;

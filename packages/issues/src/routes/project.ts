@@ -18,7 +18,7 @@ export const getProject = async (req: Request, res: Response, next: NextFunction
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'No project name provided.' });
       return;
     }
-    const project = await projectService.getProject(req.query.name);
+    const project = await projectService.getProject(req.query.name as string);
     if (project == null) {
       res.status(HttpStatus.NOT_FOUND).json({ error: 'Project not found.' });
       return;

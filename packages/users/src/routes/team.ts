@@ -19,7 +19,7 @@ export const getTeam = async (req: Request, res: Response, next: NextFunction): 
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'No team name given.' });
       return;
     }
-    const team = await teamService.getTeam(req.query.name);
+    const team = await teamService.getTeam(req.query.name as string);
     if (team == null) {
       res.status(HttpStatus.NOT_FOUND).json({ error: 'Team not found.' });
       return;
