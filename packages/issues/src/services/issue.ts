@@ -28,9 +28,11 @@ export const getIssue = async (id: string): Promise<IssueDocument | null> => {
 export const getIssues = async (project: string, state?: IssueState, label?: IssueLabel): Promise<IssueDocument[]> => {
   try {
     let issues: IssueDocument[];
-    if (state === undefined && label === undefined) {
+    // eslint-disable-next-line no-restricted-globals
+    if (state !== undefined && isNaN(state) && label === undefined) {
       issues = await Issue.find(({ project }));
-    } else if (state === undefined) {
+    // eslint-disable-next-line no-restricted-globals
+    } else if (state !== undefined && isNaN(state)) {
       issues = await Issue.find({ project, label });
     } else if (label === undefined) {
       issues = await Issue.find({ project, state });
@@ -71,13 +73,18 @@ export const createIssue = async (issueDocument: IssueDocument): Promise<IssueDo
  */
 export const updateIssue = async (updated: Partial<IssueDocument>): Promise<IssueDocument | null> => {
   try {
-    if (updated.id === undefined) throw new Error('Id is undefined');
+    let id;
+    if (updated.id !== undefined) id = updated.id;
+    // eslint-disable-next-line no-underscore-dangle
+    else if (updated._id !== undefined) id = updated._id;
+    else throw new Error('Id is undefined');
 
-    const issue = await Issue.findById(updated.id);
+    const issue = await Issue.findById(id);
     if (issue == null) return null;
 
     if (updated.label !== undefined) issue.label = updated.label;
     if (updated.state !== undefined) issue.state = updated.state;
+    if (updated.name !== undefined) issue.name = updated.name;
     await issue.save();
     return issue;
   } catch (err) {

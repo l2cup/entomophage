@@ -26,7 +26,6 @@ const issueSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-
 const Issue = mongoose.model<IssueDocument>('Issue', issueSchema);
 
 export default Issue;

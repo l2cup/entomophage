@@ -1,12 +1,12 @@
 import { Document } from 'mongoose';
 
-/**
- * @description This is an user document used to represent a User model
+/*
+ * @description This is an user model used to represent a User without overhead.
  */
-export type UserDocument = Document & {
+export type UserModel = {
   username: string;
-  email: string;
-  password: string;
+  email?: string;
+  password?: string;
 
   profile: {
     name?: string;
@@ -14,10 +14,15 @@ export type UserDocument = Document & {
     location?: string;
     website?: string;
     teamName?: string;
-    teamId?: string;
     projects?: string[];
   };
 
+}
+
+/**
+ * @description This is an user document used to represent a User mongoose model.
+ */
+export type UserDocument = Document & UserModel & {
   comparePassword: comparePasswordFunction;
 }
 

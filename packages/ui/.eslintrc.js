@@ -16,7 +16,8 @@ module.exports = {
         tsx: 'never',
       }
     ],
-    'max-len': 1
+    'max-len': 1,
+    'class-methods-use-this': 1
   },
   settings: {
     'import/resolver': {

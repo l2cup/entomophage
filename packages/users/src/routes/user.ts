@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as HttpStatus from 'http-status-codes';
-import { UserDocument } from '@entomophage/common';
+import { UserDocument, UserModel } from '@entomophage/common';
 import { userService } from '../services';
 
 /**
@@ -38,7 +38,7 @@ export const postRegister = async (req: Request, res: Response, next: NextFuncti
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Error creating the user.' });
       return;
     }
-    res.status(HttpStatus.OK).json(user);
+    res.status(HttpStatus.OK).json({ user: user as UserModel });
     return;
   } catch (err) {
     next(err);
@@ -68,6 +68,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
       return;
     }
     const user = await userService.getUserByUsername(req.body.username);
+    const userModel = user as UserModel;
     if (user == null) {
       res.status(HttpStatus.NOT_FOUND).json({ error: 'User not found.', authorization: false });
       return;
@@ -79,7 +80,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    res.status(HttpStatus.OK).json({ authorization: true });
+    res.status(HttpStatus.OK).json({ authorization: true, user: userModel });
     return;
   } catch (err) {
     next(err);
@@ -197,12 +198,10 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 export const getAllUsersFromTeam = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     let users: UserDocument[] = [];
-    if (req.query.teamid !== undefined) {
-      users = await userService.getUsersByTeamId(req.query.teamid as string);
-    } else if (req.query.teamname !== undefined) {
+    if (req.query.teamname !== undefined) {
       users = await userService.getUsersByTeamName(req.query.teamname as string);
     } else {
-      res.status(HttpStatus.BAD_REQUEST).json({ error: 'No arguments in query provided. Please provide either a teamId or a teamName' });
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'No arguments in query provided. Please provide either a team name' });
       return;
     }
     res.status(HttpStatus.OK).json(users);

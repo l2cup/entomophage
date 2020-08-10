@@ -23,12 +23,10 @@ const userSchema = new mongoose.Schema({
     location: String,
     website: String,
     teamName: String,
-    teamId: String,
     projects: [String],
   },
 
 }, { timestamps: true });
-
 
 /* Password encryption when save() is called if the password is modified. */
 userSchema.pre('save', function save(next) {

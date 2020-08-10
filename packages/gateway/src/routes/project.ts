@@ -32,6 +32,26 @@ export const getProject = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
+ * @method GET /projects/?author=""
+ * @description getProject is a get request for the '/project' route used to get a project by it's name.
+ *
+ * Response is the project fetched from the database or an error with description.
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
+ * @returns {Promise<void>}
+ */
+export const getProjects = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const serviceResponse = await adapter.get(req.originalUrl);
+    await respond(serviceResponse, req, res);
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * @method POST /project
  * @description postProject is a post request for the '/project' route used to create a project.
  *
@@ -70,7 +90,6 @@ export const putUpdateProject = async (req: Request, res: Response, next: NextFu
     next(err);
   }
 };
-
 
 /**
  * @method DELETE /project

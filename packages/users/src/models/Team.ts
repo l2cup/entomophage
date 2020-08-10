@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
 import { TeamDocument, getMemberCount, getProjectCount } from '@entomophage/common';
 
-
 const teamSchema = new mongoose.Schema({
   name: { type: String, unique: true, required: true },
-  leaderId: { type: String, unique: true, required: true },
+  leader: { type: String, required: true },
   website: String,
   members: [String],
   projects: [String],

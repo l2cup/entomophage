@@ -61,21 +61,6 @@ export const getUserById = async (id: string): Promise<UserDocument | null> => {
 };
 
 /**
- * @description getUsersByTeamId fetches multiple users from the storage by it's teamId
- * @param {string} teamId
- * @returns {Promise<UserDocument[]>}
- */
-export const getUsersByTeamId = async (teamId: string): Promise<UserDocument[]> => {
-  try {
-    const user = await User.find({ teamId });
-    if (user == null) return [];
-    return user;
-  } catch (err) {
-    return err;
-  }
-};
-
-/**
  * @description getUsersByTeamName fetches multiple users from the storage by it's teamName
  * @param {string} teamName
  * @returns {Promise<UserDocument[]>}
@@ -114,7 +99,6 @@ export const updateUser = async (updated: Partial<UserDocument>): Promise<UserDo
     if (updated.profile?.gender !== undefined) user.profile.gender = updated.profile?.gender;
     if (updated.profile?.website !== undefined) user.profile.website = updated.profile?.website;
     if (updated.profile?.teamName !== undefined) user.profile.teamName = updated.profile?.teamName;
-    if (updated.profile?.teamId !== undefined) user.profile.teamId = updated.profile?.teamId;
     if (updated.profile?.projects !== undefined) {
       const channel: Channel | null = mq.getIssuesChannel();
       if (channel == null) throw new Error('Channel error while updating projectIds.');

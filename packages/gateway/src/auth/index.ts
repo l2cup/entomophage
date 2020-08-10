@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const { SECRET } = process.env || 'SECRET';
+const { AUTH_SECRET } = process.env;
 
 export const authorize = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -15,11 +15,11 @@ export const authorize = async (req: Request, res: Response, next: NextFunction)
     }
     /* req.headers['x-jwt-token'] is actually a string if it exists not a string[] so we cast as string */
     const token: string = req.headers.authorization || req.headers['x-jwt-token'] as string;
-    const decoded = jwt.verify(token, SECRET as string);
+    const decoded = jwt.verify(token, AUTH_SECRET as string);
     if (decoded != null) next();
   } catch (err) {
     res.status(HttpStatus.FORBIDDEN).json({ error: err });
   }
 };
 
-export const makeToken = (username: string): string => jwt.sign({ username }, SECRET as string, { expiresIn: 86400 });
+export const makeToken = (username: string): string => jwt.sign({ username }, AUTH_SECRET as string, { expiresIn: 86400 });

@@ -2,6 +2,7 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import * as HttpStatus from 'http-status-codes';
 import { Request, Response, NextFunction } from 'express';
+import { UserModel } from '@entomophage/common';
 import * as auth from '../auth';
 import respond from './common';
 
@@ -43,7 +44,8 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
       return;
     }
     const token = auth.makeToken(req.body.username);
-    res.status(HttpStatus.OK).json({ authorization: true, token });
+    const userModel = serviceResponse.data.user as UserModel;
+    res.status(HttpStatus.OK).json({ authorization: true, token, user: userModel });
     return;
   } catch (err) {
     next(err);
@@ -63,7 +65,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  */
 export const postRegister = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const serviceResponse = await adapter.put(req.path, req.body);
+    const serviceResponse = await adapter.post(req.path, req.body);
     if (serviceResponse.data.error != null || serviceResponse.data.user == null) {
       res.status(serviceResponse.status).json({ error: serviceResponse.data.error });
       return;
@@ -73,7 +75,7 @@ export const postRegister = async (req: Request, res: Response, next: NextFuncti
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Error creating token.' });
       return;
     }
-    res.status(HttpStatus.OK).json({ token });
+    res.status(HttpStatus.OK).json({ token, user: serviceResponse.data.user });
   } catch (err) {
     next(err);
   }

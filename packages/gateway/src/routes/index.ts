@@ -35,5 +35,5 @@ router.post('/project', auth.authorize, projectRoutes.postProject);
 router.put('/project', auth.authorize, projectRoutes.putUpdateProject);
 router.delete('/project', auth.authorize, projectRoutes.deleteProject);
 
-
+router.get('/projects', auth.authorize, projectRoutes.getProjects);
 export default router;

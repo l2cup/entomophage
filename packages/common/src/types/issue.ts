@@ -1,9 +1,9 @@
 import { Document } from 'mongoose';
 
 /**
- * @description This is an issue document used to represent an Issue model
+ * This is an issue model used to represent an issue without overhead
  */
-export type IssueDocument = Document & {
+export type IssueModel = {
 
   label: IssueLabel;
   state: IssueState;
@@ -12,7 +12,13 @@ export type IssueDocument = Document & {
   issuedBy: string;
 
   metadata?: Map<string, string>;
+
 }
+
+/**
+ * @description This is an issue document used to represent an Issue model
+ */
+export type IssueDocument = Document & IssueModel
 
 /**
  * @description This is an issue label enum used to represent all the possible issue labels.

@@ -17,4 +17,5 @@ router.post('/project', projectRoutes.postCreateProject);
 router.put('/project', projectRoutes.putUpdateProject);
 router.delete('/project', projectRoutes.deleteProject);
 
+router.get('/projects', projectRoutes.getProjectsByAuthor);
 export default router;

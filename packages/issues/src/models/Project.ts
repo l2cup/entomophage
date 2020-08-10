@@ -11,8 +11,7 @@ const projectSchema = new mongoose.Schema({
   license: { type: String, minlength: 3, maxlength: 15 },
   author: { type: String, required: true, immutable: true },
   contributors: [String],
-  teamName: String,
-  teamId: { type: String, immutable: true },
+  teamName: { type: String, immutable: false },
   issueIds: [String],
 }, { timestamps: true });
 

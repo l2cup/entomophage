@@ -1,6 +1,6 @@
 import { Document } from 'mongoose';
 
-export type ProjectDocument = Document & {
+export type ProjectModel = {
   name: string;
   website: string;
   description: string;
@@ -8,6 +8,7 @@ export type ProjectDocument = Document & {
   author: string;
   contributors: string[];
   teamName: string;
-  teamId: string;
   issueIds: string[];
 };
+
+export type ProjectDocument = Document & ProjectModel;

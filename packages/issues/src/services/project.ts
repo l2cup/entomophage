@@ -28,6 +28,19 @@ export const getProject = async (name: string): Promise<ProjectDocument | null> 
   }
 };
 
+/**
+ * @description getProjectsByAuthor fetches all projects from the storage by it's author's name
+ * @param {string} author
+ * @returns {Promise<UserDocument[] | null>} */
+export const getProjectsByAuthor = async (author: string): Promise<ProjectDocument[] | null> => {
+  try {
+    const projects = await Project.find({ author });
+    if (projects === []) return null;
+    return projects;
+  } catch (err) {
+    return err;
+  }
+};
 
 /**
  * @description crateProject creates a project with a name and an author
@@ -100,7 +113,6 @@ export const updateProject = async (updated: Partial<ProjectDocument>): Promise<
 
       project.contributors = updated.contributors;
     }
-    if (updated.teamId !== undefined) project.teamId = updated.teamId;
     if (updated.teamName !== undefined) project.teamName = updated.teamName;
     if (updated.issueIds !== undefined) project.issueIds = updated.issueIds;
     await project.save();

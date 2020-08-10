@@ -49,7 +49,9 @@ services:
     build: ./packages/gateway/Dockerfile
     command: yarn serve
     environment:
-      - MQ_URI=amqp://rabbitmq:5672
+      - USERS_URL=http://users:5050
+      - ISSUES_URL=http://issues:5060
+      - AUTH_SECRET=foZMG81wiafxd2DkG61al2HtvIT0TuwU
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:

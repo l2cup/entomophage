@@ -30,6 +30,33 @@ export const getProject = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
+ * @method GET /project/?author=""
+ * @description getProject is a get request for the '/project' route used to get a project by it's name.
+ *
+ * Response is the project fetched from the database or an error with description.
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
+ * @returns {Promise<void>}
+ */
+export const getProjectsByAuthor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (req.query.author === undefined) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'No author name provided.' });
+      return;
+    }
+    const project = await projectService.getProjectsByAuthor(req.query.author as string);
+    if (project == null) {
+      res.status(HttpStatus.NOT_FOUND).json({ error: 'No projects found.' });
+      return;
+    }
+    res.status(HttpStatus.OK).json(project);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * @method POST /project
  * @description postProject is a post request for the '/project' route used to create a project.
  *

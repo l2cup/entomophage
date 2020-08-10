@@ -1,9 +1,9 @@
 import { Document } from 'mongoose';
 
 /**
- * @description This is an team document used to represent a Team model
+ * @description This is an team document used to represent a Team without overhead.
  */
-export type TeamDocument = Document & {
+export type TeamModel = {
   name: string;
   website: string;
 
@@ -11,6 +11,12 @@ export type TeamDocument = Document & {
   members: string[];
   projects: string[];
 
+}
+
+/**
+ * @description This is an team document used to represent a Team document
+ */
+export type TeamDocument = Document & TeamModel & {
   getMemberCount: getter<number>;
   getProjectCount: getter<number>;
 }

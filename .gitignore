@@ -7,12 +7,17 @@
 .DS_Store
 .AppleDouble
 .LSOverride
+.docker.build.sh
 
 # Icon must end with two \r
 Icon
 
 # Thumbnails
+
 ._*
+
+.idea/*
+docker.build.sh
 
 # Files that might appear in the root of a volume
 .DocumentRevisions-V100
